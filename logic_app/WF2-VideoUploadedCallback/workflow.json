@@ -1,0 +1,97 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Initialize_video_id": {
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "video_id",
+                            "type": "string",
+                            "value": "@{if(contains(triggerOutputs(), 'queries'), triggerOutputs()['queries'], null)['id']}"
+                        }
+                    ]
+                },
+                "runAfter": {}
+            },
+            "Initialize_state": {
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "state",
+                            "type": "string",
+                            "value": "@{if(contains(triggerOutputs(), 'queries'), triggerOutputs()['queries'], null)['state']}"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Initialize_video_id": [
+                        "Succeeded"
+                    ]
+                }
+            },
+            "Condition": {
+                "type": "If",
+                "expression": {
+                    "and": [
+                        {
+                            "equals": [
+                                "@variables('state')",
+                                "Processed"
+                            ]
+                        }
+                    ]
+                },
+                "actions": {
+                    "Call_GenerateAVAMCaptions": {
+                        "type": "Http",
+                        "inputs": {
+                            "method": "POST",
+                            "uri": "@body('Get_LOGICAPP-ENDPOINT-AVAM-GENERATE-CAPTIONS')?['value']",
+                            "body": {
+                                "video_id": "@variables('video_id')"
+                            }
+                        },
+                        "runAfter": {}
+                    }
+                },
+                "runAfter": {
+                    "Get_LOGICAPP-ENDPOINT-AVAM-GENERATE-CAPTIONS": [
+                        "Succeeded"
+                    ]
+                }
+            },
+            "Get_LOGICAPP-ENDPOINT-AVAM-GENERATE-CAPTIONS": {
+                "type": "ApiConnection",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "referenceName": "keyvault_1"
+                        }
+                    },
+                    "method": "get",
+                    "path": "/secrets/@{encodeURIComponent('LOGICAPP-ENDPOINT-AVAM-GENERATE-CAPTIONS')}/value"
+                },
+                "runAfter": {
+                    "Initialize_state": [
+                        "Succeeded"
+                    ]
+                }
+            }
+        },
+        "triggers": {
+            "manual": {
+                "type": "Request",
+                "kind": "Http",
+                "inputs": {
+                    "method": "POST"
+                }
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {}
+    },
+    "kind": "Stateful"
+}

@@ -1,0 +1,120 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "actions": {
+      "For_each": {
+        "actions": {
+          "Call_EncodeMP3toAACMP4": {
+            "inputs": {
+              "body": {
+                "blob_sas_uri": "@{body('Create_SAS_URI_by_path_(V2)')?['WebUrl']}",
+                "video_id": "@{triggerBody()?['video_id']}"
+              },
+              "function": {
+                "connectionName": "azureFunctionOperation-4"
+              },
+              "method": "POST"
+            },
+            "runAfter": {
+              "Create_SAS_URI_by_path_(V2)": [
+                "Succeeded"
+              ]
+            },
+            "type": "Function"
+          },
+          "Create_SAS_URI_by_path_(V2)": {
+            "inputs": {
+              "body": {
+                "Permissions": "Read"
+              },
+              "host": {
+                "connection": {
+                  "referenceName": "azureblob"
+                }
+              },
+              "method": "post",
+              "path": "/v2/datasets/@{encodeURIComponent('AccountNameFromSettings')}/CreateSharedLinkByPath",
+              "queries": {
+                "path": "@items('For_each')?['Path']"
+              }
+            },
+            "runAfter": {},
+            "type": "ApiConnection"
+          }
+        },
+        "foreach": "@body('Select_all_the_generated_.mp3s')",
+        "runAfter": {
+          "Select_all_the_generated_.mp3s": [
+            "Succeeded"
+          ]
+        },
+        "type": "Foreach"
+      },
+      "List_all_blobs_in_the_video_working_folder": {
+        "inputs": {
+          "host": {
+            "connection": {
+              "referenceName": "azureblob"
+            }
+          },
+          "method": "get",
+          "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/foldersV2/@{encodeURIComponent(encodeURIComponent('/videodubbing/working-files/',triggerBody()?['video_id'],'/'))}",
+          "queries": {
+            "nextPageMarker": "",
+            "useFlatListing": false
+          }
+        },
+        "runAfter": {},
+        "type": "ApiConnection"
+      },
+      "Select_all_the_generated_.mp3s": {
+        "inputs": {
+          "from": "@body('List_all_blobs_in_the_video_working_folder')?['value']",
+          "where": "@endswith(item()?['Name'], '.mp3')"
+        },
+        "runAfter": {
+          "List_all_blobs_in_the_video_working_folder": [
+            "Succeeded"
+          ]
+        },
+        "type": "Query"
+      },
+      "UpdateVideoManifestXML": {
+        "inputs": {
+          "body": {
+            "video_id": "@triggerBody()?['video_id']"
+          },
+          "function": {
+            "connectionName": "azureFunctionOperation-5"
+          },
+          "method": "POST"
+        },
+        "runAfter": {
+          "For_each": [
+            "Succeeded"
+          ]
+        },
+        "type": "Function"
+      }
+    },
+    "contentVersion": "1.0.0.0",
+    "outputs": {},
+    "triggers": {
+      "manual": {
+        "inputs": {
+          "schema": {
+            "properties": {
+              "video_id": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "kind": "Http",
+        "type": "Request"
+      }
+    }
+  },
+  "kind": "Stateful"
+}

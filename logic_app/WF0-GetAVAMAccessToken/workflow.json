@@ -1,0 +1,176 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "actions": {
+      "AVAM-MANAGEMENT-TOKEN-ENDPOINT": {
+        "inputs": {
+          "host": {
+            "connection": {
+              "referenceName": "keyvault"
+            }
+          },
+          "method": "get",
+          "path": "/secrets/@{encodeURIComponent('AVAM-MANAGEMENT-TOKEN-ENDPOINT')}/value"
+        },
+        "runAfter": {
+          "Get_AVAM-RESOURCE-ID": [
+            "Succeeded"
+          ]
+        },
+        "type": "ApiConnection"
+      },
+      "Get_AAD_Token_with_Service_Principal": {
+        "inputs": {
+          "body": "grant_type=client_credentials&client_id=@{body('Get_CLIENT-APP-ID')?['value']}&client_secret=@{body('Get_CLIENT-APP-SECRET')?['value']}&scope=https://management.azure.com/.default",
+          "headers": {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          "method": "POST",
+          "uri": "https://login.microsoftonline.com/@{body('Get_TENANT-ID')?['value']}/oauth2/v2.0/token"
+        },
+        "runAfter": {
+          "AVAM-MANAGEMENT-TOKEN-ENDPOINT": [
+            "Succeeded"
+          ]
+        },
+        "type": "Http"
+      },
+      "Get_AVAM-RESOURCE-ID": {
+        "inputs": {
+          "host": {
+            "connection": {
+              "referenceName": "keyvault"
+            }
+          },
+          "method": "get",
+          "path": "/secrets/@{encodeURIComponent('AVAM-RESOURCE-ID')}/value"
+        },
+        "runAfter": {
+          "Get_TENANT-ID": [
+            "Succeeded"
+          ]
+        },
+        "type": "ApiConnection"
+      },
+      "Get_AVAM_Management_Token": {
+        "inputs": {
+          "body": {
+            "permissionType": "Contributor",
+            "scope": "Account"
+          },
+          "headers": {
+            "Authorization": "Bearer @{body('Parse_AAD_Token_from_Response')?['access_token']}",
+            "Content-Type": "application/json"
+          },
+          "method": "POST",
+          "uri": "@body('AVAM-MANAGEMENT-TOKEN-ENDPOINT')?['value']"
+        },
+        "runAfter": {
+          "Parse_AAD_Token_from_Response": [
+            "Succeeded"
+          ]
+        },
+        "type": "Http"
+      },
+      "Get_CLIENT-APP-ID": {
+        "inputs": {
+          "host": {
+            "connection": {
+              "referenceName": "keyvault"
+            }
+          },
+          "method": "get",
+          "path": "/secrets/@{encodeURIComponent('CLIENT-APP-ID')}/value"
+        },
+        "runAfter": {},
+        "type": "ApiConnection"
+      },
+      "Get_CLIENT-APP-SECRET": {
+        "inputs": {
+          "host": {
+            "connection": {
+              "referenceName": "keyvault"
+            }
+          },
+          "method": "get",
+          "path": "/secrets/@{encodeURIComponent('CLIENT-APP-SECRET')}/value"
+        },
+        "runAfter": {
+          "Get_CLIENT-APP-ID": [
+            "Succeeded"
+          ]
+        },
+        "type": "ApiConnection"
+      },
+      "Get_TENANT-ID": {
+        "inputs": {
+          "host": {
+            "connection": {
+              "referenceName": "keyvault"
+            }
+          },
+          "method": "get",
+          "path": "/secrets/@{encodeURIComponent('TENANT-ID')}/value"
+        },
+        "runAfter": {
+          "Get_CLIENT-APP-SECRET": [
+            "Succeeded"
+          ]
+        },
+        "type": "ApiConnection"
+      },
+      "Parse_AAD_Token_from_Response": {
+        "inputs": {
+          "content": "@body('Get_AAD_Token_with_Service_Principal')",
+          "schema": {
+            "properties": {
+              "access_token": {
+                "type": "string"
+              },
+              "expires_in": {
+                "type": "integer"
+              },
+              "ext_expires_in": {
+                "type": "integer"
+              },
+              "token_type": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "runAfter": {
+          "Get_AAD_Token_with_Service_Principal": [
+            "Succeeded"
+          ]
+        },
+        "type": "ParseJson"
+      },
+      "Response": {
+        "inputs": {
+          "body": "@body('Get_AVAM_Management_Token')",
+          "headers": "@outputs('Get_AVAM_Management_Token')['headers']",
+          "statusCode": "@outputs('Get_AVAM_Management_Token')['statusCode']"
+        },
+        "kind": "http",
+        "runAfter": {
+          "Get_AVAM_Management_Token": [
+            "Succeeded"
+          ]
+        },
+        "type": "Response"
+      }
+    },
+    "contentVersion": "1.0.0.0",
+    "outputs": {},
+    "triggers": {
+      "manual": {
+        "inputs": {},
+        "kind": "Http",
+        "type": "Request"
+      }
+    }
+  },
+  "kind": "Stateful"
+}

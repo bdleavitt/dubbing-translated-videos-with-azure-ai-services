@@ -1,0 +1,22 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;EndpointSuffix=core.windows.net",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "VIDEO_UPLOAD_STORAGE_CONN_STRING": "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;EndpointSuffix=core.windows.net",
+    "VIDEO_UPLOAD_STORAGE_CONTAINER": "videodubbing",
+    "SPEECH_SERVICE_KEY": "",
+    "SPEECH_SERVICE_KEY_REGION": "eastus2",
+    "CLIENT_APP_ID": "",
+    "CLIENT_APP_SECRET": "",
+    "CLIENT_APP_TENANT_ID": "",
+    "AZURE_SUBSCRIPTION_ID": "",
+    "MEDIA_SERVICES_RESOURCE_GROUP" : "",
+    "MEDIA_SERVICES_ACCOUNT_NAME" : "",
+    "MEDIA_SERVICES_STORAGE_ACCOUNT_CONNECTION_STRING" : "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;EndpointSuffix=core.windows.net",
+    "FUNCTIONS_EXTENSION_VERSION": "~3",
+    "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;EndpointSuffix=core.windows.net",
+    "WEBSITE_CONTENTSHARE": "",
+    "APPINSIGHTS_INSTRUMENTATIONKEY": ""
+  }
+}
