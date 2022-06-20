@@ -68,7 +68,7 @@
                 "inputs": {
                     "host": {
                         "connection": {
-                            "referenceName": "keyvault_1"
+                            "referenceName": "keyvault"
                         }
                     },
                     "method": "get",
