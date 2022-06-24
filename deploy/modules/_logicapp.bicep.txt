@@ -5,8 +5,14 @@ param location string
 param logicAppASPName string
 param logicAppName string
 param logicAppStorageName string
-param appInsightsConnectionString string
-param appInsightsInstrumentationKey string
+param azureAppInsightsName string
+param videoUploadStorageName string
+param blobStorageConnectionName string
+param keyVaultName string
+param keyVaultConnectionName string
+param videoIndexerName string
+param videoIndexerConnectionName string
+
 
 //App Service Plan
 resource logicAppASP 'Microsoft.Web/serverfarms@2021-03-01' = {
@@ -20,6 +26,15 @@ resource logicAppASP 'Microsoft.Web/serverfarms@2021-03-01' = {
     elasticScaleEnabled: true
     maximumElasticWorkerCount: 20
   }
+}
+
+// App insights reference
+resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
+  name: azureAppInsightsName
+}
+// Video WIP storage account reference
+resource videoWorkingStorage 'Microsoft.Storage/storageAccounts@2021-09-01' existing = {
+  name: videoUploadStorageName
 }
 
 // Storage Account for stateful workflows
@@ -86,11 +101,11 @@ resource logicApp 'Microsoft.Web/sites@2021-03-01' = {
         }
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appInsightsInstrumentationKey
+          value: appInsights.properties.InstrumentationKey
         }
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: appInsightsConnectionString
+          value: appInsights.properties.ConnectionString
         }
         {
           name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
@@ -127,6 +142,6 @@ resource logicApp 'Microsoft.Web/sites@2021-03-01' = {
 }
 
 
-output appName string = logicApp.name
-output planName string = logicAppASP.name
-output logicAppPrincipalID string = logicApp.identity.principalId
+output app string = logicApp.name
+output plan string = logicAppASP.name
+output logicappprincipalid string = logicApp.identity.principalId

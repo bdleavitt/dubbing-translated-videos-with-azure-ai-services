@@ -1,6 +1,10 @@
 param location string
 param keyVaultName string
-param servicePrincipalId string
+param principalID string
+param avamAccountIDParam string = ''
+param avamAccountRegionParam string = ''
+param avamResourceIDParam string = ''
+param avamManagementTokenEndpointParam string = ''
 
 /******************/
 // Key Vault
@@ -21,7 +25,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2021-10-01' = {
             'all'
           ]
         }
-        objectId: servicePrincipalId
+        objectId: '60f6fccb-935a-40a3-a7bb-f899b9ca0f1b'
         tenantId: tenant().tenantId
       }
     ]
@@ -34,7 +38,7 @@ resource AVAMACCOUNTID 'Microsoft.KeyVault/vaults/secrets@2021-10-01' = {
     attributes: {
       enabled: true
     }
-    value: ''
+    value: avamAccountIDParam
   }
 }
 resource AVAMACCOUNTREGION 'Microsoft.KeyVault/vaults/secrets@2021-10-01' = {
@@ -44,7 +48,7 @@ resource AVAMACCOUNTREGION 'Microsoft.KeyVault/vaults/secrets@2021-10-01' = {
     attributes: {
       enabled: true
     }
-    value: ''
+    value: avamAccountRegionParam
   }
 }
 resource AVAMMANAGEMENTTOKENENDPOINT 'Microsoft.KeyVault/vaults/secrets@2021-10-01' = {
@@ -54,7 +58,7 @@ resource AVAMMANAGEMENTTOKENENDPOINT 'Microsoft.KeyVault/vaults/secrets@2021-10-
     attributes: {
       enabled: true
     }
-    value: ''
+    value: avamManagementTokenEndpointParam
   }
 }
 resource AVAMRESOURCEID 'Microsoft.KeyVault/vaults/secrets@2021-10-01' = {
@@ -64,7 +68,7 @@ resource AVAMRESOURCEID 'Microsoft.KeyVault/vaults/secrets@2021-10-01' = {
     attributes: {
       enabled: true
     }
-    value: ''
+    value: avamResourceIDParam
   }
 }
 resource CLIENTAPPID 'Microsoft.KeyVault/vaults/secrets@2021-10-01' = {
@@ -74,7 +78,7 @@ resource CLIENTAPPID 'Microsoft.KeyVault/vaults/secrets@2021-10-01' = {
     attributes: {
       enabled: true
     }
-    value: ''
+    value: principalID
   }
 }
 resource CLIENTAPPSECRET 'Microsoft.KeyVault/vaults/secrets@2021-10-01' = {
@@ -144,7 +148,7 @@ resource TENANTID 'Microsoft.KeyVault/vaults/secrets@2021-10-01' = {
     attributes: {
       enabled: true
     }
-    value: ''
+    value: tenant().tenantId
   }
 }
 

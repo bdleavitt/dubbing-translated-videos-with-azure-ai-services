@@ -93,4 +93,5 @@ resource azFunction 'Microsoft.Web/sites@2021-03-01' = {
     }
   }
 }
+
 output azFunctionStorageName string = azFunctionStorage.name

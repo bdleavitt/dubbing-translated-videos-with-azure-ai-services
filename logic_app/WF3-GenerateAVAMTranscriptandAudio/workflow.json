@@ -78,7 +78,7 @@
             "inputs": {
               "host": {
                 "connection": {
-                  "referenceName": "videoindexer-v2"
+                  "referenceName": "videoindexerv2"
                 }
               },
               "method": "get",
@@ -232,7 +232,7 @@
         "inputs": {
           "host": {
             "connection": {
-              "referenceName": "videoindexer-v2"
+              "referenceName": "videoindexerv2"
             }
           },
           "method": "get",
