@@ -3,7 +3,7 @@ This solution allows a user to upload a video to Azure Blob Storage, and then au
 
 To get started
 
-## What gest deployed? 
+## What gets deployed? 
 The deploy folder contains Azure bicep template code which deploys a number of resources: 
 
 1. A storage account for video uploads and for intermediate assets used in the creation of the new audio tracks. 
@@ -33,6 +33,7 @@ The deploy folder contains Azure bicep template code which deploys a number of r
     * Go to Certificates & Secrets -> Genereate new client secret
 * Install Azure Storage explorer
 
+## Deployment and Configuration Steps
 1. Clone repo.
 1. Log in to Azure CLI client ``az login``
 1. From the command line, navigate to the deploly folder, i.e. ``cd ./deploy/``
@@ -127,29 +128,25 @@ secret. This is a JSON array that specifies what language and what voice should 
     "language-text-code": "zh-Hans",
     "language-three-letter-code": "zho",
     "language-voice-code": "zh-CN",
-    "language-voice-name": "zh-CN-YunxiNeural",
-    "language-display-name": "Chinese - 中文"
+    "language-voice-name": "zh-CN-YunxiNeural"
   },
   {
     "language-text-code": "es-MX",
     "language-three-letter-code": "spa",
     "language-voice-code": "es-MX",
-    "language-voice-name": "es-MX-JorgeNeural",
-    "language-display-name": "Spanish - Español"
+    "language-voice-name": "es-MX-JorgeNeural"
   },
   {
     "language-text-code": "fr-FR",
     "language-three-letter-code": "fra",
     "language-voice-code": "fr-FR",
-    "language-voice-name": "fr-FR-HenriNeural",
-    "language-display-name": "French - Français"
+    "language-voice-name": "fr-FR-HenriNeural"
   },
   {
     "language-text-code": "th-TH",
     "language-three-letter-code": "tha",
     "language-voice-code": "th-TH",
-    "language-voice-name": "th-TH-NiwatNeural",
-    "language-display-name": "Thai - ไทย"
+    "language-voice-name": "th-TH-NiwatNeural"
   }
 ]
 ```
