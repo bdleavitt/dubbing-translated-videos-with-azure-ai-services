@@ -21,7 +21,7 @@
       },
       "For_each": {
         "actions": {
-          "Call_an_Azure_function": {
+          "Call_Azure_Function_TranscriptToAudio": {
             "inputs": {
               "body": "@body('Get_Video_Index_-_Get_Language_Transcript')",
               "function": {
@@ -78,7 +78,7 @@
             "inputs": {
               "host": {
                 "connection": {
-                  "referenceName": "videoindexerv2"
+                  "referenceName": "videoindexer-v2"
                 }
               },
               "method": "get",
@@ -232,7 +232,7 @@
         "inputs": {
           "host": {
             "connection": {
-              "referenceName": "videoindexerv2"
+              "referenceName": "videoindexer-v2"
             }
           },
           "method": "get",

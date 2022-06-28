@@ -4,7 +4,7 @@
     "actions": {
       "For_each": {
         "actions": {
-          "Call_EncodeMP3toAACMP4": {
+          "Call_Azure_Function_EncodeMP3toAACMP4": {
             "inputs": {
               "body": {
                 "blob_sas_uri": "@{body('Create_SAS_URI_by_path_(V2)')?['WebUrl']}",
@@ -79,7 +79,7 @@
         },
         "type": "Query"
       },
-      "UpdateVideoManifestXML": {
+      "Call_Azure_Function_UpdateVideoManifestXML": {
         "inputs": {
           "body": {
             "video_id": "@triggerBody()?['video_id']"

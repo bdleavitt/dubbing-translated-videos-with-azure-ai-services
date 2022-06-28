@@ -2,6 +2,23 @@ param prefix string
 param location string = resourceGroup().location
 param spClientId string
 
+// Add service principal as contributor resource group.
+@description('This is the built-in Contributor role. See https://docs.microsoft.com/azure/role-based-access-control/built-in-roles#contributor')
+resource contributorRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' existing = {
+  scope: subscription()
+  name: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
+}
+
+resource spRBACAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
+  name: guid('Contributor', spClientId, subscription().subscriptionId)
+  scope: resourceGroup()
+  properties: {
+    principalId: spClientId
+    roleDefinitionId: contributorRoleDefinition.id
+    principalType: 'ServicePrincipal'
+  }
+}
+
 /******************/
 // Create WIP storage container (ADLS gen 2)
 /******************/
@@ -95,6 +112,23 @@ module videoIndexer 'modules/videoindexer.bicep' = {
 }
 
 /******************/
+// Speech Service
+/******************/
+param speechServiceName string = '${prefix}-speech-api-${uniqueString(resourceGroup().id)}'
+
+resource speechService 'Microsoft.CognitiveServices/accounts@2022-03-01' = {
+  name: speechServiceName
+  sku: {
+    name: 'S0'
+  }
+  location: location
+  kind: 'SpeechServices'
+  properties: {
+    publicNetworkAccess: 'Enabled'
+  }
+}
+
+/******************/
 // Azure Function
 /******************/
 param azureFunctionAppName string = '${prefix}-dubbing-function-${uniqueString(resourceGroup().id)}'
@@ -110,6 +144,12 @@ module azfunction 'modules/azurefunction.bicep' = {
     azureFunctionAppServicePlanName: azureFunctionAppServicePlanName
     appInsightsInstrumentationKey: appInsights.properties.InstrumentationKey
     appInsightsConnectionString: appInsights.properties.ConnectionString
+    clientAppId: spClientId
+    mediaServicesAccountName: medSvcAccountName
+    mediaServicesAccountStorageName: videoIndexer.outputs.mediaServicesStorageAccountName
+    speechServiceKey: speechService.listKeys().key1
+    speechServiceKeyRegion: speechService.location
+    videoStorageConnectionString: 'DefaultEndpointsProtocol=https;AccountName=${videoWorkingStorage.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${videoWorkingStorage.listKeys().keys[0].value}'
   }
 }
 
@@ -127,29 +167,29 @@ module keyVault 'modules/keyvault.bicep' = {
     avamAccountIDParam: videoIndexer.outputs.avamAccountIDParam
     avamResourceIDParam: videoIndexer.outputs.avamResourceIDParam
     avamAccountRegionParam: videoIndexer.outputs.avamAccountRegionParam
-    avamManagementTokenEndpointParam: '${environment().resourceManager}${videoIndexer.outputs.avamAccountIDParam}/generateAccessToken?api-version=2022-04-13-preview'
+    avamManagementTokenEndpointParam: '${environment().resourceManager}${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.VideoIndexer/accounts/${videoIndexer.name}/generateAccessToken?api-version=2022-04-13-preview'
   }
 }
 
 /******************/
 // Connections
 /******************/
-param blobStorageConnectionName string = 'azureblob' // 'connection-storage-blob-${azureLogicAppConnectionSuffix}'
-param keyVaultConnectionName string = 'keyvault' // 'connection-keyvault-${azureLogicAppConnectionSuffix}'
-param videoIndexerConnectionName string = 'videoindexer-v2' // 'connection-videoindexer-${azureLogicAppConnectionSuffix}'
+// param blobStorageConnectionName string = 'azureblob' // 'connection-storage-blob-${azureLogicAppConnectionSuffix}'
+// param keyVaultConnectionName string = 'keyvault' // 'connection-keyvault-${azureLogicAppConnectionSuffix}'
+// param videoIndexerConnectionName string = 'videoindexer-v2' // 'connection-videoindexer-${azureLogicAppConnectionSuffix}'
 
-module connections 'modules/logicapp_connections.bicep' = {
-  name: 'logicAppConnections'
-  params: {
-    location: location
-    keyVaultName: keyVault.name
-    keyVaultConnectionName: keyVaultConnectionName
-    blobStorageConnectionName: blobStorageConnectionName
-    videoWorkingStorageID: videoWorkingStorage.id
-    videoWorkingStorageName: videoWorkingStorage.name
-    videoWorkingStorageApiVersion: videoWorkingStorage.apiVersion
-    videoIndexerConnectionName: videoIndexerConnectionName
-    logicAppPrincipalId: logicApp.outputs.logicAppPrincipalID
-    logicAppName: logicApp.outputs.appName
-  }
-}
+// module connections 'modules/logicapp_connections.bicep' = {
+//   name: 'logicAppConnections'
+//   params: {
+//     location: location
+//     keyVaultName: keyVault.name
+//     keyVaultConnectionName: keyVaultConnectionName
+//     blobStorageConnectionName: blobStorageConnectionName
+//     videoWorkingStorageID: videoWorkingStorage.id
+//     videoWorkingStorageName: videoWorkingStorage.name
+//     videoWorkingStorageApiVersion: videoWorkingStorage.apiVersion
+//     videoIndexerConnectionName: videoIndexerConnectionName
+//     logicAppPrincipalId: logicApp.outputs.logicAppPrincipalID
+//     logicAppName: logicApp.outputs.appName
+//   }
+// }

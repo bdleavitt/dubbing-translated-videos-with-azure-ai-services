@@ -162,8 +162,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     switch.insert(0, ET.fromstring(audio_element_temp, parser=parser))
 
     for i in range(len(track_list)):
-        three_letter_language = track_list[i].split("_")[2]
-        language_code = track_list[i].split("_")[1]
+        three_letter_language = track_list[i].split("_")[3]
+        language_code = track_list[i].split("_")[2]
         bitrate = str(192000)
 
         audio_element = ET.Element("audio", attrib={

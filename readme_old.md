@@ -1,19 +1,6 @@
-# Using Azure Cognitive and AI Services to Dub Video Translations
-
-## Deployment Steps:
-Local Setup:
-1. Clone this repository to your local machine for local development.
-1. Follow TODO: this guide to set up your local machine to develop Logic Apps locally.
-1. Follow TODO: this guide to set up your local machine to develop Azure Functions with python. 
+Saving only for posterity. Please see deployment steps in the readme.md file. 
 
 ### Deploy Azure Resources:
-1. Create an Azure app registration (a.k.a. service principal). This will be used to authenticate to various services. 
-    * the service principal needs access to these resources TODO
-    * Get the application ID,
-    * Get the directory / tenant ID
-    * Go to Certificates & Secrets -> Genereate new client secret
-1. Create a new resource group in Azure
-    * Once deployed, give your service principal "Contributor" access to your resource group.
 1. Deploy an Azure Storage Account w/ hierarchichal namespace enabled (a.k.a Azure Data Lake Storage Gen 2 or ADLS gen 2)
     * Set geo replication to "Locally redundant" for pilot/POC work, or per your organization's policy. 
     * Click enable Hierarchical namespace

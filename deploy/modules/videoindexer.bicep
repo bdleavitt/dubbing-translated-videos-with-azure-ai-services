@@ -6,7 +6,7 @@ param location string
 param medSvcAccountName string
 param medSvcStorageName string
 
-resource videoIndexer 'Microsoft.VideoIndexer/accounts@2021-11-10-preview' = {
+resource videoIndexer 'Microsoft.VideoIndexer/accounts@2022-04-13-preview' = {
   name: videoIndexerName
   location: location
   identity: {
@@ -51,6 +51,24 @@ resource mediaSvcsAccount 'Microsoft.Media/mediaservices@2021-06-01' = {
   }
 }
 
+resource mediaSvcsTransformCreate 'Microsoft.Media/mediaServices/transforms@2021-11-01' = {
+  name: 'MP3toAACMP4'
+  parent: mediaSvcsAccount
+  properties: {
+    outputs: [
+      {
+        onError: 'StopProcessingJob'
+        relativePriority: 'Normal'
+        preset: {
+          '@odata.type': '#Microsoft.Media.BuiltInStandardEncoderPreset'
+          presetName: 'AACGoodQualityAudio'
+        }
+      }
+    ]
+  }
+}
+
 output avamAccountIDParam string = videoIndexer.properties.accountId
 output avamAccountRegionParam string = videoIndexer.location
 output avamResourceIDParam string = videoIndexer.id
+output mediaServicesStorageAccountName string = medSvcStorage.name

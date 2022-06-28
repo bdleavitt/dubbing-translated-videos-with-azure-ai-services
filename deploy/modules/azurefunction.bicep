@@ -8,6 +8,16 @@ param azureFunctionAppName string
 param location string
 param appInsightsInstrumentationKey string
 param appInsightsConnectionString string
+param videoStorageConnectionString string
+param speechServiceKey string
+param speechServiceKeyRegion string
+param clientAppId string
+param mediaServicesAccountName string
+param mediaServicesAccountStorageName string 
+
+resource mediaServicesStorage 'Microsoft.Storage/storageAccounts@2021-09-01' existing = {
+  name: mediaServicesAccountStorageName
+}
 
 resource azFunctionStorage 'Microsoft.Storage/storageAccounts@2021-09-01' = {
   name: azureFunctionStorageName
@@ -47,7 +57,7 @@ resource azFunction 'Microsoft.Web/sites@2021-03-01' = {
     httpsOnly: true
     serverFarmId: azFunctionAppServicePlan.id
     siteConfig: {
-      linuxFxVersion: 'DOCKER|bleavitt/videodubbingfunction:1.0.4'
+      linuxFxVersion: 'DOCKER|bleavitt/videodubbingfunction:1.0.6'
       numberOfWorkers: 1
       appSettings: [
         {
@@ -87,6 +97,51 @@ resource azFunction 'Microsoft.Web/sites@2021-03-01' = {
           name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
           value: 'false'
         }
+        {
+          name: 'VIDEO_UPLOAD_STORAGE_CONN_STRING'
+          value: videoStorageConnectionString
+        }
+        {
+          name: 'VIDEO_UPLOAD_STORAGE_CONTAINER'
+          value: 'videodubbing'
+        }
+        {
+          name: 'SPEECH_SERVICE_KEY'
+          value: speechServiceKey
+        }
+        {
+          name: 'SPEECH_SERVICE_KEY_REGION'
+          value: speechServiceKeyRegion
+        }
+        {
+          name: 'CLIENT_APP_ID'
+          value: clientAppId
+        }
+        {
+          name: 'CLIENT_APP_SECRET' 
+          value: ''
+        }
+        {
+          name: 'CLIENT_APP_TENANT_ID' 
+          value: tenant().tenantId
+        }
+        {
+          name: 'AZURE_SUBSCRIPTION_ID' 
+          value: subscription().subscriptionId
+        }
+        {
+          name: 'MEDIA_SERVICES_RESOURCE_GROUP' 
+          value: resourceGroup().name
+        }
+        {
+          name: 'MEDIA_SERVICES_ACCOUNT_NAME' 
+          value: mediaServicesAccountName
+        }
+        {
+          name: 'MEDIA_SERVICES_STORAGE_ACCOUNT_CONNECTION_STRING' 
+          value: 'DefaultEndpointsProtocol=https;AccountName=${mediaServicesStorage.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${mediaServicesStorage.listKeys().keys[0].value}'
+        }
+        
       ]
       ftpsState: 'FtpsOnly'
       minTlsVersion: '1.2'
@@ -95,3 +150,8 @@ resource azFunction 'Microsoft.Web/sites@2021-03-01' = {
 }
 
 output azFunctionStorageName string = azFunctionStorage.name
+
+
+
+
+

@@ -17,17 +17,19 @@ resource keyVault 'Microsoft.KeyVault/vaults@2021-10-01' = {
       family: 'A'
       name: 'standard'
     }
+    enabledForDeployment: true
+    enableRbacAuthorization: false
     tenantId: tenant().tenantId
     accessPolicies: [
-      {
-        permissions: {
-          secrets: [
-            'all'
-          ]
-        }
-        objectId: '60f6fccb-935a-40a3-a7bb-f899b9ca0f1b'
-        tenantId: tenant().tenantId
-      }
+      // {
+      //   permissions: {
+      //     secrets: [
+      //       'all'
+      //     ]
+      //   }
+      //   objectId: '60f6fccb-935a-40a3-a7bb-f899b9ca0f1b'
+      //   tenantId: tenant().tenantId
+      // }
     ]
   }
 }
@@ -138,7 +140,37 @@ resource SPEECHLANGUAGESCONFIG 'Microsoft.KeyVault/vaults/secrets@2021-10-01' = 
     attributes: {
       enabled: true
     }
-    value: ''
+    value: '''[
+      {
+        "language-text-code": "zh-Hans",
+        "language-three-letter-code": "zho",
+        "language-voice-code": "zh-CN",
+        "language-voice-name": "zh-CN-YunxiNeural",
+        "language-display-name": "Chinese - 中文"
+      },
+      {
+        "language-text-code": "es-MX",
+        "language-three-letter-code": "spa",
+        "language-voice-code": "es-MX",
+        "language-voice-name": "es-MX-JorgeNeural",
+        "language-display-name": "Spanish - Español"
+      },
+      {
+        "language-text-code": "fr-FR",
+        "language-three-letter-code": "fra",
+        "language-voice-code": "fr-FR",
+        "language-voice-name": "fr-FR-HenriNeural",
+        "language-display-name": "French - Français"
+      },
+      {
+        "language-text-code": "th-TH",
+        "language-three-letter-code": "tha",
+        "language-voice-code": "th-TH",
+        "language-voice-name": "th-TH-NiwatNeural",
+        "language-display-name": "Thai - ไทย"
+      }
+    ]
+    '''
   }
 }
 resource TENANTID 'Microsoft.KeyVault/vaults/secrets@2021-10-01' = {
