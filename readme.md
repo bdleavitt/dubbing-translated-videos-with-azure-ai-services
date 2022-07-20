@@ -1,8 +1,6 @@
 # Using Azure Cognitive and AI Services to Dub Video Translations
 This solution allows a user to upload a video to Azure Blob Storage, and then automatically process and dub it into multiple languages, which can be then viewed using the Azure Video Indexer website. 
 
-To get started
-
 ## What gets deployed? 
 The deploy folder contains Azure bicep template code which deploys a number of resources: 
 
@@ -31,6 +29,7 @@ The deploy folder contains Azure bicep template code which deploys a number of r
     * Get the application ID
     * Get the directory / tenant ID
     * Go to Certificates & Secrets -> Genereate new client secret
+* Install Visual Studio Code and add the Logic Apps (Standard) extension
 * Install Azure Storage explorer
 
 ## Deployment and Configuration Steps
@@ -60,13 +59,14 @@ The deploy folder contains Azure bicep template code which deploys a number of r
 1. **Set Logic Apps to access resources**
     1. Open Logic apps
     2. Click on "Workflows"
-    3. Add a Workflow named "ConnectionsSetup"
+    3. Add a Workflow named "ConnectionsSetup". This can be a stateful workflow. 
     4. Set the trigger to "When a HTTP request is received"
     5. Add a Key Vault "Get Secret" action.
         * Click connect with managed identity.
         * In "connection name" put this exact string: ``keyvault``
         * In vault name paste the name of your keyvault (i.e. bdl-keyvault-r2qqwn6j54t)
-        * Select any of the listed secrets and click "Save" to save the workflow. This will preserved the connection to be used by the custom logic app. 
+        * Select any of the listed secrets 
+        * **Click "Save"** to save the workflow. This will preserved the connection to be used by the custom logic app. 
     6. Add a "List Blobs (V2)" action
         * For connection name enter exactly: ``azureblob``
         * Authentication type: Access Key
@@ -74,11 +74,11 @@ The deploy folder contains Azure bicep template code which deploys a number of r
         * In a separate tab, navigate to your storage account > Access Keys > "show keys" > then copy the key string. Paste this in the Azure S torage Account Access Key
         * Under storage account name, choose "Use Connection Settings" 
         * Verify you can connect by clicking to the videodubbing/uploads folder.
-        * Click save
+        * **Click save**
     7. Add a "Get Accounts" Video Indexer action
         * Under connection name set the value to exactly: ``videoindexer-2``
         * Under API Key enter any random string. We will be using the more modern identity based authentication. 
-        * Click save
+        * **Click save**
     8. Add Azure Function connections
         * Add a "Call an Azure Function" action. 
         * Call this connection ``TranscriptToAudio``
@@ -87,7 +87,7 @@ The deploy folder contains Azure bicep template code which deploys a number of r
         * Click "Create"
         * Set the Method to POST
         * Type ``'{}'`` in the Request body field.
-        * Repeat these steps for the "EncodeMP3toAACMP4" and "UpdateVideoManifestXML" functions. Save after adding each action. 
+        * Repeat these steps for the "EncodeMP3toAACMP4" and "UpdateVideoManifestXML" functions. **Save after adding each action.**
 
 1. **Deploy your logic apps code from VS Code** 
     1. Open the ./logic_app directory directly. (If you try to deploy from the root folder you may get an error)
