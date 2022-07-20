@@ -28,17 +28,24 @@ The deploy folder contains Azure bicep template code which deploys a number of r
     * the service principal needs access to these resources TODO
     * Get the application ID
     * Get the directory / tenant ID
-    * Go to Certificates & Secrets -> Genereate new client secret
+    * Go to Certificates & Secrets -> Generate new client secret
 * Install Visual Studio Code and add the Logic Apps (Standard) extension
 * Install Azure Storage explorer
 
 ## Deployment and Configuration Steps
 1. Clone repo.
 1. Log in to Azure CLI client ``az login``
-1. From the command line, navigate to the deploly folder, i.e. ``cd ./deploy/``
+1. From the command line, navigate to the deploy folder, i.e. ``cd ./deploy/``
 1. Create a new resource group ``az group create -l eastus2 -g RG-VideoDubbing-Bicep``
-1. Deploy the bicep templates. Choose your own prefix instead of "tla" and include the app replace the guid with the id of your service principal: ``az deployment group create -g RG-VideoDubbing-Bicep --template-file .\main.bicep --parameters prefix=tla spClientId=spClientId=0000000-0000-0000-0000-000000000000``
+1. Deploy the bicep templates. Choose your own prefix instead of "tla" and include the app replace the guid with the id of your service principal: ``az deployment group create -g RG-VideoDubbing-Bicep --template-file .\main.bicep --parameters prefix=tla spClientId=0000000-0000-0000-0000-000000000000``
 1. Open the Azure Portal and navigate to the resource group view of the resource group you created and deployed to. 
+1. **Give Service Principal "Contributor" role on Resource Group
+    1. Navigate to your newly-created resource group in the Azure Portal. 
+    1. Click on "Access Control (IAM)"
+    1. Click the "+ Add" option and choose "Add role assignment"
+    1. Choose "Contributor" then click "Next"
+    1. Click "Select members" and then search for the app name of your service principal
+    1. Click "Review and Assign" and then submit
 1. **Create an uploads directory in Azure Storage**
     1. Navigate to your storage account that will be used for video uploads and working files (this will be named something like {your prefix}**videodubstg**{uniquestring})
     1. Open the videodubbing storage container.
@@ -54,9 +61,10 @@ The deploy folder contains Azure bicep template code which deploys a number of r
     1. Under "Secret Permissions" select "Get" and "List" options. 
     1. Under Select principal click "None selected" then search for and select the name of your Logic App. 
     1. Click "Add"
-    1. Repeat the above steps using your own User ID as the principal and assign yourself all rights on the key vaults using the "Configure from template" option. This will give you all permissions. 
+    1. Repeat the above steps using **your own User ID as the principal** and assign yourself all rights on the key vaults using the **Key, Secret & Certificate Management** template option. This will give you all permissions. 
     1. **Don't forget to click "SAVE" on before navigating away from the KV access policy  screen!**
 1. **Set Logic Apps to access resources**
+    Note: ``In this section, be sure to use the exact names for the connections``
     1. Open Logic apps
     2. Click on "Workflows"
     3. Add a Workflow named "ConnectionsSetup". This can be a stateful workflow. 
@@ -87,14 +95,19 @@ The deploy folder contains Azure bicep template code which deploys a number of r
         * Click "Create"
         * Set the Method to POST
         * Type ``'{}'`` in the Request body field.
-        * Repeat these steps for the "EncodeMP3toAACMP4" and "UpdateVideoManifestXML" functions. **Save after adding each action.**
+        * Refresh the page and repeat these steps for the "EncodeMP3toAACMP4" and "UpdateVideoManifestXML" functions. **Save and then refresh after adding each action.**
+        * ``Note: if your functions don't load in the Logic App screen, you may need to navigate to the Azure Function resource and check in the Deployment Center if the function container finished deploying.``
 
 1. **Deploy your logic apps code from VS Code** 
     1. Open the ./logic_app directory directly. (If you try to deploy from the root folder you may get an error)
-    1. Ctrl+Shift+P to open command palled
+    ![Image showing opening the logic_app folder directly](./images/open_logic_app_in_vscode.png)
+    1. Ctrl+Shift+P to open command pallet
+    1. Sign in to your azure account using one of the "Azure: Sign In" options
+    1. Re-open the command pallet.
     1. Type "Deploy to Logic App" and choose the menu option. 
     1. Follow the prompts to deploy the code to your newly created logic app (i.e. bdl-dubbing-logicapp-r2qqwn6j54t3c)
     1. After deployment, navigate to your logic app in the Azure Portal. You should see new workflows added. 
+
 1. **Connect your Logic App with Azure Functions**
     1. Navigate to the "WF3-GenerateAVAMTranscriptandAudio" workflow.
     1. In the desinger, locate the "Call AzureFn TranscriptToAudio" step. 
@@ -110,7 +123,7 @@ The deploy folder contains Azure bicep template code which deploys a number of r
 
 1. **Update Key Vault Secrets**
     1. Navigate to your Key Vault
-    1. Update CLIENT-APP-SECRET wit the secret for your service principal. 
+    1. Update CLIENT-APP-SECRET with the secret for your service principal. 
     1. Update the following secrets with the respective Logic App worfklow URL (you may want to open a second browser and do this side by side)
         
         * LOGICAPP-ENDPOINT-GET-AVAM-ACCESS-TOKEN (WF0)
@@ -121,32 +134,39 @@ The deploy folder contains Azure bicep template code which deploys a number of r
 1. **Update Language Config**
 The language config setting is house in the Key Vault under the SPEECH-LANGUAGES-CONFIG
 secret. This is a JSON array that specifies what language and what voice should be used to generate the dubbed audio. Update your own list using the supported pre-built neural voices listed here: https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/language-support?tabs=speechtotext#text-to-speech. You finished product should look should look something like this: 
-
-```
-[
-  {
-    "language-text-code": "zh-Hans",
-    "language-three-letter-code": "zho",
-    "language-voice-code": "zh-CN",
-    "language-voice-name": "zh-CN-YunxiNeural"
-  },
-  {
-    "language-text-code": "es-MX",
-    "language-three-letter-code": "spa",
-    "language-voice-code": "es-MX",
-    "language-voice-name": "es-MX-JorgeNeural"
-  },
-  {
-    "language-text-code": "fr-FR",
-    "language-three-letter-code": "fra",
-    "language-voice-code": "fr-FR",
-    "language-voice-name": "fr-FR-HenriNeural"
-  },
-  {
-    "language-text-code": "th-TH",
-    "language-three-letter-code": "tha",
-    "language-voice-code": "th-TH",
-    "language-voice-name": "th-TH-NiwatNeural"
-  }
-]
-```
+    ```
+    [
+    {
+        "language-text-code": "zh-Hans",
+        "language-three-letter-code": "zho",
+        "language-voice-code": "zh-CN",
+        "language-voice-name": "zh-CN-YunxiNeural"
+    },
+    {
+        "language-text-code": "es-MX",
+        "language-three-letter-code": "spa",
+        "language-voice-code": "es-MX",
+        "language-voice-name": "es-MX-JorgeNeural"
+    },
+    {
+        "language-text-code": "fr-FR",
+        "language-three-letter-code": "fra",
+        "language-voice-code": "fr-FR",
+        "language-voice-name": "fr-FR-HenriNeural"
+    },
+    {
+        "language-text-code": "th-TH",
+        "language-three-letter-code": "tha",
+        "language-voice-code": "th-TH",
+        "language-voice-name": "th-TH-NiwatNeural"
+    }
+    ]
+    ```
+1. **Test the End to End Workflow**
+* Upload a video to the "uploads" folder in your blob storage account. 
+* Open the "WF1-UploadVideoToAVAM" workflow to begin monitoring progress. 
+* If WF1 is successful, you can log in to https://www.videoindexer.ai/ to monitoring the video indexing process. 
+* Once video indexing reaches 100%, check WF2 and WF3. 
+* You can also monitor the creation of intermediate assets in the "working-files" directory in the video dubbing storage account (the same account where you created the upload folder)
+* To monitor the Azure Function as it generates the new language audio, open your azure function > Functions > TranscriptToAudio > Monitor > Logs
+* If any particular WF fails, you should should be able to retrigger the run within the workflow run screen in the Logic Apps screen. 

@@ -115,7 +115,7 @@ class TranscriptToVoiceConverter:
             speech_synthesizer = self.get_speech_synthesizer(output_filename=filename)
             resp = speech_synthesizer.speak_ssml_async(phrase_ssml).get()
 
-            self.check_speech_result(resp, phrase_ssml)
+            ## self.check_speech_result(resp, phrase_ssml)
 
             if sentence["text"] == "":
                 sentences_list[i][duration_key] = 0
@@ -161,7 +161,10 @@ class TranscriptToVoiceConverter:
                         needed_adjustment_secs = current_gap_to_next
 
                     target_duration = translated_duration + needed_adjustment_secs
-                    prosody_rate = translated_duration / target_duration
+                    if target_duration == 0:
+                        prosody_rate = 1
+                    else:
+                        prosody_rate = translated_duration / target_duration
                     
                     adjusted_end_time = current_start_time + timedelta(seconds=target_duration)
 

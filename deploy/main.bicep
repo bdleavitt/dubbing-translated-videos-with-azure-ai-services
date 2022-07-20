@@ -167,7 +167,7 @@ module keyVault 'modules/keyvault.bicep' = {
     avamAccountIDParam: videoIndexer.outputs.avamAccountIDParam
     avamResourceIDParam: videoIndexer.outputs.avamResourceIDParam
     avamAccountRegionParam: videoIndexer.outputs.avamAccountRegionParam
-    avamManagementTokenEndpointParam: '${environment().resourceManager}${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.VideoIndexer/accounts/${videoIndexer.name}/generateAccessToken?api-version=2022-04-13-preview'
+    avamManagementTokenEndpointParam: '${environment().resourceManager}subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.VideoIndexer/accounts/${videoIndexer.name}/generateAccessToken?api-version=2022-04-13-preview'
   }
 }
 

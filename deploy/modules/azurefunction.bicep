@@ -57,7 +57,7 @@ resource azFunction 'Microsoft.Web/sites@2021-03-01' = {
     httpsOnly: true
     serverFarmId: azFunctionAppServicePlan.id
     siteConfig: {
-      linuxFxVersion: 'DOCKER|bleavitt/videodubbingfunction:1.0.6'
+      linuxFxVersion: 'DOCKER|bleavitt/videodubbingfunction:1.0.8'
       numberOfWorkers: 1
       appSettings: [
         {
