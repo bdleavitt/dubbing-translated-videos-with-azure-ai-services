@@ -23,13 +23,13 @@ The deploy folder contains Azure bicep template code which deploys a number of r
 1. A Speech Services instance, part of the Azure Cognitive Services family
 
 ## Pre-requisites:
-* Install the Azure CLI client on your machine. 
-* Create an Azure app registration (a.k.a. service principal). This will be used to authenticate to various services. 
-    * the service principal needs access to these resources TODO
-    * Get the application ID
-    * Get the directory / tenant ID
-    * Go to Certificates & Secrets -> Generate new client secret
-* Install Visual Studio Code and add the Logic Apps (Standard) extension
+* Install the [Azure CLI client](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) on your machine. 
+* [Create an Azure app registration](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal) (a.k.a. service principal). This will be used to authenticate to various services. 
+    * After creating the app registration, make note of the 
+        * The client/application ID
+        * The directory / tenant ID
+        * Go to Certificates & Secrets -> Generate new client secret
+* [Install Visual Studio Code]  and add the Logic Apps (Standard) extension 
 * Install Azure Storage explorer
 
 ## Deployment and Configuration Steps
@@ -38,8 +38,8 @@ The deploy folder contains Azure bicep template code which deploys a number of r
 1. From the command line, navigate to the deploy folder, i.e. ``cd ./deploy/``
 1. Create a new resource group ``az group create -l eastus2 -g RG-VideoDubbing-Bicep``
 1. Deploy the bicep templates. Choose your own prefix instead of "tla" and include the app replace the guid with the id of your service principal: ``az deployment group create -g RG-VideoDubbing-Bicep --template-file .\main.bicep --parameters prefix=tla spClientId=0000000-0000-0000-0000-000000000000``
-1. Open the Azure Portal and navigate to the resource group view of the resource group you created and deployed to. 
-1. **Give Service Principal "Contributor" role on Resource Group
+1. In the Azure Portal navigate to the resource group you just created and deployed to. 
+1. **Give Service Principal "Contributor" role on Resource Group**
     1. Navigate to your newly-created resource group in the Azure Portal. 
     1. Click on "Access Control (IAM)"
     1. Click the "+ Add" option and choose "Add role assignment"
@@ -67,27 +67,42 @@ The deploy folder contains Azure bicep template code which deploys a number of r
     Note: ``In this section, be sure to use the exact names for the connections``
     1. Open Logic apps
     2. Click on "Workflows"
-    3. Add a Workflow named "ConnectionsSetup". This can be a stateful workflow. 
-    4. Set the trigger to "When a HTTP request is received"
+    3. Add a Workflow named "ConnectionsSetup". This can be a statful workflow. 
+    3. Open your new workflow. Click on "Designer". 
+    4. For the first trigger, type in the word Request and set the trigger to "When a HTTP request is received"
+    5. Click the + button to add an action to your workflow. Click on the action square.
     5. Add a Key Vault "Get Secret" action.
-        * Click connect with managed identity.
+        * Select the Azure tab in the action pane (not the Built-in)
+        * Click "connect with managed identity".
         * In "connection name" put this exact string: ``keyvault``
-        * In vault name paste the name of your keyvault (i.e. bdl-keyvault-r2qqwn6j54t)
+        * In vault name paste the name of your keyvault (i.e. bdl-keyvault-r2qqwn6j54t). The Managed Idnetity field will say "System-Assigned Managed Identity". 
+        * Click "Create" 
         * Select any of the listed secrets 
-        * **Click "Save"** to save the workflow. This will preserved the connection to be used by the custom logic app. 
+        * **Click "Save"** to save the workflow. This will preserve the connection which can be used by other workflows in the logic app. 
     6. Add a "List Blobs (V2)" action
+        * Create a new action in your workflow after "Get Secret". 
+        * Select the Azure tab in the action pane (not the Built-in)
+        * Search for "List Blobs" and choose the "List Blobs (v2)" action
         * For connection name enter exactly: ``azureblob``
         * Authentication type: Access Key
-        * Azure Storage Account Name: paste the storage account name for your upload/working storage account (i.e. bdlvideodubstgr2qqwn6j54)
-        * In a separate tab, navigate to your storage account > Access Keys > "show keys" > then copy the key string. Paste this in the Azure S torage Account Access Key
+        * Azure Storage Account Name: paste the account name for your upload/working storage account (i.e. bdlvideodubstgr2qqwn6j54)
+        * In a separate tab, navigate to your storage account > Access Keys > "Show Keys" > then copy the key string. Paste this in the Azure Storage Account Access Key field in Logic Apps.
+        * Click Create. 
         * Under storage account name, choose "Use Connection Settings" 
-        * Verify you can connect by clicking to the videodubbing/uploads folder.
+        * Under folder type or navigate to "/videodubbing/uploads/"
         * **Click save**
     7. Add a "Get Accounts" Video Indexer action
+        * Add a new action after List Blobs.
+        * Select the Azure tab in the action pane (not the Built-in)
+        * Search for "Video Indexer get accounts" 
         * Under connection name set the value to exactly: ``videoindexer-2``
-        * Under API Key enter any random string. We will be using the more modern identity based authentication. 
+        * Under API Key enter any random string (i.e. "123"). We will be using the more modern identity-based authentication instead. 
+        * Click "Create"
         * **Click save**
     8. Add Azure Function connections
+        * Add a new action after Get Accounts
+        * Select Built In tab in the action pane.
+        * Search for "Function"
         * Add a "Call an Azure Function" action. 
         * Call this connection ``TranscriptToAudio``
         * Click on your deployed function app (i.e. bdl-dubbing-function-r2qqwn6j54t3c)
@@ -95,38 +110,67 @@ The deploy folder contains Azure bicep template code which deploys a number of r
         * Click "Create"
         * Set the Method to POST
         * Type ``'{}'`` in the Request body field.
-        * Refresh the page and repeat these steps for the "EncodeMP3toAACMP4" and "UpdateVideoManifestXML" functions. **Save and then refresh after adding each action.**
+        * **Click Save**
+        
+    9. Add additional Function connections
+        * Refresh the page and repeat these steps for the "EncodeMP3toAACMP4" and "UpdateVideoManifestXML" functions. 
+        * Add a new Call Azure Funciton action. 
+        * In the new action block click "Change connection"
+        * Click Add New
+        * List the connection name as exactly ``EncodeMP3toAACMP4`` 
+        * Click the name of your deployed function. 
+        * Choose the corresponding function. 
+        * Click create
+        * Set method to POST
+        * Type ``'{}'`` into the body field
+        **Click Save**
+        * Repeat for the next function ``UpdateVideoManifestXML``
         * ``Note: if your functions don't load in the Logic App screen, you may need to navigate to the Azure Function resource and check in the Deployment Center if the function container finished deploying.``
+        * ``Note: if you are unsuccessful at saving the workflow, you may need to delete the Functions actions step. Right-click and delete. Then, try again.``
 
 1. **Deploy your logic apps code from VS Code** 
-    1. Open the ./logic_app directory directly. (If you try to deploy from the root folder you may get an error)
+    1. Open the ./logic_app directory directly in VSCode. (If you try to deploy from the root folder you may get an error)
     ![Image showing opening the logic_app folder directly](./images/open_logic_app_in_vscode.png)
     1. Ctrl+Shift+P to open command pallet
-    1. Sign in to your azure account using one of the "Azure: Sign In" options
+    1. Type "Azure: Sign In" to sign and hit enter to sign in to your Azure account. 
     1. Re-open the command pallet.
     1. Type "Deploy to Logic App" and choose the menu option. 
     1. Follow the prompts to deploy the code to your newly created logic app (i.e. bdl-dubbing-logicapp-r2qqwn6j54t3c)
+    1. If prompted to overwrite the existing deployment, click "Deploy" 
     1. After deployment, navigate to your logic app in the Azure Portal. You should see new workflows added. 
 
-1. **Connect your Logic App with Azure Functions**
+1. **Connect your new Logic App workflows with Azure Functions**
     1. Navigate to the "WF3-GenerateAVAMTranscriptandAudio" workflow.
-    1. In the desinger, locate the "Call AzureFn TranscriptToAudio" step. 
-    1. Click change connection.
-    1. Select the TranscriptToAudio function connection you created earlier. 
-    1. Navigate to WF4-EncodeMP3toAACMP4 workflow and repeat these steps forthe  EncodeMP3toAACMP4 and UpdateVideoManifestXML function connections. 
-    1. Save your workflow. 
+    1. In the designer, locate the "Call AzureFn TranscriptToAudio" step. 
+    1. Click on the Function action step.
+    1. In the action pane, click change connection.
+    1. Select the TranscriptToAudio function connection you created earlier.
+    1. **Click Save**
+    1. Navigate to WF4-EncodeMP3toAACMP4 workflow and repeat these steps for the remaining two Function actions: "EncodeMP3toAACMP4" and "UpdateVideoManifestXML" function connections. 
+    1. **Click save**
 
 1. **Update Function App Settings**
-    1. Open your function app in the portal > Configuration
+    1. Open your function app in the Portal > Configuration
     1. In the app settings, set the CLIENT_APP_SECRET to the secret for your service principal. 
     1. Be sure to click SAVE before navigating from the app settings screen. 
 
-1. **Update Key Vault Secrets**
+1. **Update Client App Secret in Key Vault**
     1. Navigate to your Key Vault
-    1. Update CLIENT-APP-SECRET with the secret for your service principal. 
-    1. Update the following secrets with the respective Logic App worfklow URL (you may want to open a second browser and do this side by side)
-        
-        * LOGICAPP-ENDPOINT-GET-AVAM-ACCESS-TOKEN (WF0)
+    1. Click on "Secrets"
+    1. Find the CLIENT-APP-SECRET secret.
+    1. Click "New Version"
+    1. In the value field paste the client secret for your service principal/app registration. 
+    1. Click Create.
+
+1. **Update Logic App Flow endpoint urls in Key Vault** 
+    1. In Key Vault, locate the LOGICAPP-ENDPOINT-GET-AVAM-ACCESS-TOKEN secret. 
+    1. In a separate browser tab, navigate to your Logic App workflows. 
+    1. Click on WF0-GetAVAMAccessToken.
+    1. On the overview page, copy the Workflow URL.
+    1. In Key Vault, create a new version of the LOGICAPP-ENDPOINT-GET-AVAM-ACCESS-TOKEN secet. 
+    1. Paste in the value of the workflow URL. 
+    1. Click Create. 
+    1. Repeat for the following secrets and workflows
         * LOGICAPP-ENDPOINT-AVAM-UPLOAD-CALLBACK (WF2)
         * LOGICAPP-ENDPOINT-AVAM-GENERATE-CAPTIONS (WF3)
         * LOGICAPP-ENDPOINT-ENCODE-MP3TOAACMP4 (WF4)
