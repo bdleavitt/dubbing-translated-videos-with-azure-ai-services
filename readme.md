@@ -14,8 +14,8 @@ Once completed, the end user will be able to select different language tracks fr
 ![Logical architecture diagram](./images/architectural_logical_flow.png)
 1. A user uploads a video to a directory in Azure Storage.
 1. The video upload triggers a Logic App workflow. The Logic App helps orchestrate the remainder of the process. 
-    * The Logic App retrieves secrets and other configuration values for Azure Key Vault.
-    * Azure Active Directory generates access tokens that will be used in subsequent steps. 
+1. The Logic App retrieves secrets and other configuration values for Azure Key Vault.
+1. Azure Active Directory generates access tokens that will be used in subsequent steps. 
 5. The uploaded video is sent to Azure Video Indexer for indexing. 
 6. Once indexing is complete, Video Indexer uses a callback URL to trigger the Logic App and continue the workflow. The Logic App retrieves the translated transcript files for each target language. 
 7. Logic App calls a function in the Azure Function App to prepare the transcript.
