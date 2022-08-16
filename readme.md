@@ -1,6 +1,29 @@
 # Using Azure Cognitive and AI Services to Dub Video Translations
 This solution allows a user to upload a video to Azure Blob Storage, and then automatically process and dub it into multiple languages, which can be then viewed using the Azure Video Indexer website. 
 
+The main AI services used in this solution are Azure Video Indexer, which extracts insights from audio and video and also translates the transcripts into different languages. The Azure Speech API is used to take the translated text and convert it into speech, using pre-trained, language-specific neural voices. Azure Logic Apps and Azure Functions are used to orchestrate the process and work with the generated audio files  
+
+[<img src="./images/video_in_video_indexer.png" width=550 />](./images/video_in_video_indexer.png)
+
+Once completed, the end user will be able to select different language tracks from the video player controls. 
+
+![Audio tracks inside the media player](./images/video_with_audio_tracks.png)
+
+
+## How does it work?
+![Logical architecture diagram](./images/architectural_logical_flow.png)
+1. A user uploads a video to a directory in Azure Storage.
+1. The video upload triggers a Logic App workflow. The Logic App helps orchestrate the remainder of the process. 
+    * The Logic App retrieves secrets and other configuration values for Azure Key Vault.
+    * Azure Active Directory generates access tokens that will be used in subsequent steps. 
+5. The uploaded video is sent to Azure Video Indexer for indexing. 
+6. Once indexing is complete, Video Indexer uses a callback URL to trigger the Logic App and continue the workflow. The Logic App retrieves the translated transcript files for each target language. 
+7. Logic App calls a function in the Azure Function App to prepare the transcript.
+8. The Azure Function calls the speech API multiple times to generate speech and estimate the optimal speech speed to preserve timing in the video. The output of this step is an .mp3 file for each of the target languages. 
+9. The generate audio is encoded in Media Services in an AAC-encoded MP4 format for streaming. 
+10. The encoded audio is uploaded and the video's manifest file is updated to reflect the new langauge audio tracks. 
+
+
 ## What gets deployed? 
 The deploy folder contains Azure bicep template code which deploys a number of resources: 
 
@@ -31,12 +54,14 @@ The deploy folder contains Azure bicep template code which deploys a number of r
         * Go to Certificates & Secrets -> Generate new client secret
 * [Install Visual Studio Code]  and add the Logic Apps (Standard) extension 
 * Install Azure Storage explorer
+* Have Git installed on your machine to clone the repositiory.
 
 ## Deployment and Configuration Steps
-1. Clone repo.
+1. Clone repo. i.e. ``git clone {repository_name}``
 1. Log in to Azure CLI client ``az login``
 1. From the command line, navigate to the deploy folder, i.e. ``cd ./deploy/``
-1. Create a new resource group ``az group create -l eastus2 -g RG-VideoDubbing-Bicep``
+1. If needed, specify the subscription you will deploy to by typing ``az account set --subscription 0000000-0000-0000-0000-000000000000``
+1. Create a new resource group ``az group create -l eastus2 -g RG-VideoDubbing-Bicep`
 1. Deploy the bicep templates. Choose your own prefix instead of "tla" and include the app replace the guid with the id of your service principal: ``az deployment group create -g RG-VideoDubbing-Bicep --template-file .\main.bicep --parameters prefix=tla spClientId=0000000-0000-0000-0000-000000000000``
 1. In the Azure Portal navigate to the resource group you just created and deployed to. 
 1. **Give Service Principal "Contributor" role on Resource Group**
@@ -58,6 +83,7 @@ The deploy folder contains Azure bicep template code which deploys a number of r
     1. Navigate to your key vault
     1. Go to Access Policies
     1. +Add access policy
+    ![Adding the access policy to key vault.](./images/Add_keyvault_access_policy.png)
     1. Under "Secret Permissions" select "Get" and "List" options. 
     1. Under Select principal click "None selected" then search for and select the name of your Logic App. 
     1. Click "Add"
@@ -65,6 +91,7 @@ The deploy folder contains Azure bicep template code which deploys a number of r
     1. **Don't forget to click "SAVE" on before navigating away from the KV access policy  screen!**
 1. **Set Logic Apps to access resources**
     Note: ``In this section, be sure to use the exact names for the connections``
+    ![Creating connections in Azure Logic Apps](./images/Add_keyvault_access_policy.png
     1. Open Logic apps
     2. Click on "Workflows"
     3. Add a Workflow named "ConnectionsSetup". This can be a statful workflow. 
